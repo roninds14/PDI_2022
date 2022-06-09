@@ -3,6 +3,7 @@ let buttonProcessa = document.getElementById("btn-processa")
 let buttonCinza = document.getElementById("btn-tons-cinza")
 let buttonSave = document.getElementById("btn-save")
 let buttonSalPimenta = document.getElementById("btn-tons-sal-pimenta")
+let buttonSepararTons = document.getElementById("btn-separar-tons")
 let inputFile = document.getElementById("input-file")
 let canvasOriginal = document.getElementById("img_00")
 let canvasProcessado = document.getElementById("img_01")
@@ -29,6 +30,10 @@ buttonSave.addEventListener("click", () => {
 
 buttonSalPimenta.addEventListener("click", () => {
     ruidoSalPimenta()
+})
+
+buttonSepararTons.addEventListener("click",  () =>{
+    separarTons()
 })
 
 window.addEventListener('DOMContentLoaded', () =>{
@@ -152,6 +157,54 @@ function ruidoSalPimenta(){
         ctx.fillRect(colunm,row,1,1);
         colunm++
     }
+}
+
+function separarTons(){
+    const {width, height} = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+    
+    const canvasRed = document.createElement("canvas")
+    const ctxRed = canvasRed.getContext('2d')
+    canvasRed.width = width
+    canvasRed.height = height
+    
+    const canvasGreen = document.createElement("canvas")
+    const ctxGreen = canvasGreen.getContext('2d')
+    canvasGreen.width = width
+    canvasGreen.height = height
+    
+    const canvasBlue = document.createElement("canvas")
+    const ctxBlue = canvasBlue.getContext('2d')
+    canvasBlue.width = width
+    canvasBlue.height = height
+
+    let row = 0
+    let colunm = 0 
+
+    for (let i = 0; i < src.length; i++) {
+        let r = src[i] & 0xFF
+        let g = (src[i] >> 8) & 0xFF
+        let b = (src[i] >> 16) & 0xFF
+
+        if(i && !(i % width)){
+            row++
+            colunm = 0
+        }
+
+        ctxRed.fillStyle = rgbToHex(r,0,0)
+        ctxRed.fillRect(colunm,row,1,1)
+        
+        ctxGreen.fillStyle = rgbToHex(0,g,0)
+        ctxGreen.fillRect(colunm,row,1,1)
+
+        ctxBlue.fillStyle = rgbToHex(0,0,b)
+        ctxBlue.fillRect(colunm,row,1,1)
+        colunm++
+    }
+
+    document.getElementById("canvas-processado").appendChild(canvasRed)
+    document.getElementById("canvas-processado").appendChild(canvasBlue)
+    document.getElementById("canvas-processado").appendChild(canvasGreen)
 }
 
 function rgbToHex(r,g,b){
