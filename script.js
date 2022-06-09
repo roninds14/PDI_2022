@@ -21,8 +21,10 @@ buttonCinza.addEventListener("click", () => {
 })
 
 buttonSave.addEventListener("click", () => {
-    let ctx = canvasOriginal.getContext('2d')
+    let ctx = canvasOriginal.getContext('2d')    
     ctx.drawImage(canvasProcessado,0,0)
+    let ctxProcessado = canvasProcessado.getContext('2d')
+    inImg  = ctxProcessado.getImageData(0, 0, inImg.width, inImg.height)
 })
 
 buttonSalPimenta.addEventListener("click", () => {
@@ -112,8 +114,44 @@ function converterParaCinza(){
 
 function ruidoSalPimenta(){
     const {width, height} = inImg
+    const percent = parseInt(width*height*0.01)
+    const total = width*height
+    
+    const src = new Uint32Array(inImg.data.buffer)
 
-    for()
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let row = 0
+    let colunm = 0 
+
+    for (let i = 0; i < src.length; i++) {
+        let r = src[i] & 0xFF
+        let g = (src[i] >> 8) & 0xFF
+        let b = (src[i] >> 16) & 0xFF
+
+        if(i && !(i % width)){
+            row++
+            colunm = 0
+        }
+
+        if(Math.random() * (total - 0) + 0 < percent){
+            let rgb = "#FFFFFF"
+            
+            if(Math.random() < 0.5){
+                rgb = "#000000"                
+            }
+
+            ctx.fillStyle = rgb
+        }
+        else{
+            ctx.fillStyle = rgbToHex(r,g,b);
+        }
+        
+        ctx.fillRect(colunm,row,1,1);
+        colunm++
+    }
 }
 
 function rgbToHex(r,g,b){
