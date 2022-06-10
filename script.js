@@ -5,6 +5,7 @@ let buttonSave = document.getElementById("btn-save")
 let buttonSalPimenta = document.getElementById("btn-tons-sal-pimenta")
 let buttonSepararTons = document.getElementById("btn-separar-tons")
 let buttonHistograma = document.getElementById("btn-histograma")
+let buttonHistogramaColor = document.getElementById("btn-histograma-color")
 let buttonSoma = document.getElementById("btn-soma")
 let buttonMedia = document.getElementById("btn-media")
 let buttonMediana = document.getElementById("btn-mediana")
@@ -37,6 +38,9 @@ buttonSave.addEventListener("click", () => {
 
 buttonSalPimenta.addEventListener("click", () => {
     const canvas = ruidoSalPimenta()
+    const {width, height} = canvas
+    canvasProcessado.width = width
+    canvasProcessado.height = height
     let ctx = canvasProcessado.getContext('2d')
     ctx.drawImage(canvas,0,0)
 })
@@ -46,7 +50,11 @@ buttonSepararTons.addEventListener("click",  () =>{
 })
 
 buttonHistograma.addEventListener("click", () =>{
-    equalizacaoHistograma()
+    equalizacaoHistograma(true)
+})
+
+buttonHistogramaColor.addEventListener("click", () =>{
+    equalizacaoHistograma(false)
 })
 
 buttonSoma.addEventListener("click", () =>{
@@ -251,34 +259,48 @@ function rgbToHex(r,g,b){
     return "#" + red + green + blue
 }
 
-function equalizacaoHistograma() {
-    const src = new Uint32Array(inImg.data.buffer);
+function equalizacaoHistograma(isValueHistogram) {
+    const {width, height} = inImg;
+    const src = new Uint32Array(inImg.data.buffer);    
     
     let histBrightness = (new Array(256)).fill(0);
     let histR = (new Array(256)).fill(0);
     let histG = (new Array(256)).fill(0);
     let histB = (new Array(256)).fill(0);
     for (let i = 0; i < src.length; i++) {
-        let r = src[i] & 0xFF;
-        let g = (src[i] >> 8) & 0xFF;
-        let b = (src[i] >> 16) & 0xFF;
-        histBrightness[r]++;
-        histBrightness[g]++;
-        histBrightness[b]++;
-        histR[r]++;
-        histG[g]++;
-        histB[b]++;
+      let r = src[i] & 0xFF;
+      let g = (src[i] >> 8) & 0xFF;
+      let b = (src[i] >> 16) & 0xFF;
+      histBrightness[r]++;
+      histBrightness[g]++;
+      histBrightness[b]++;
+      histR[r]++;
+      histG[g]++;
+      histB[b]++;
     }
     
     let maxBrightness = 0;
-    
-    for (let i = 1; i < 256; i++) {
+    if (isValueHistogram) {
+      for (let i = 1; i < 256; i++) {
         if (maxBrightness < histBrightness[i]) {
-            maxBrightness = histBrightness[i]
+          maxBrightness = histBrightness[i]
         }
+      }
+    } else {
+      for (let i = 0; i < 256; i++) {
+        if (maxBrightness < histR[i]) {
+          maxBrightness = histR[i]
+        } else if (maxBrightness < histG[i]) {
+          maxBrightness = histG[i]
+        } else if (maxBrightness < histB[i]) {
+          maxBrightness = histB[i]
+        }
+      }
     }
     
     const canvas = document.getElementById('img_01');
+    canvas.width = width
+    canvas.height = height
     const ctx = canvas.getContext('2d');
     let guideHeight = 8;
     let startY = (canvas.height - guideHeight);
@@ -289,23 +311,47 @@ function equalizacaoHistograma() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     for (let i = 0; i < 256; i++) {
-        let x = i * dx;
-      
+      let x = i * dx;
+      if (isValueHistogram) {
+        // Value
         ctx.strokeStyle = "#000000";
         ctx.beginPath();
         ctx.moveTo(x, startY);
         ctx.lineTo(x, startY - histBrightness[i] * dy);
         ctx.closePath();
         ctx.stroke(); 
-      
-        ctx.strokeStyle = 'rgb(' + i + ', ' + i + ', ' + i + ')';
+      } else {
+        // Red
+        ctx.strokeStyle = "rgba(220,0,0,0.5)";
         ctx.beginPath();
         ctx.moveTo(x, startY);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, startY - histR[i] * dy);
         ctx.closePath();
         ctx.stroke(); 
+        // Green
+        ctx.strokeStyle = "rgba(0,210,0,0.5)";
+        ctx.beginPath();
+        ctx.moveTo(x, startY);
+        ctx.lineTo(x, startY - histG[i] * dy);
+        ctx.closePath();
+        ctx.stroke(); 
+        // Blue
+        ctx.strokeStyle = "rgba(0,0,255,0.5)";
+        ctx.beginPath();
+        ctx.moveTo(x, startY);
+        ctx.lineTo(x, startY - histB[i] * dy);
+        ctx.closePath();
+        ctx.stroke(); 
+      }
+      // Guide
+      ctx.strokeStyle = 'rgb(' + i + ', ' + i + ', ' + i + ')';
+      ctx.beginPath();
+      ctx.moveTo(x, startY);
+      ctx.lineTo(x, canvas.height);
+      ctx.closePath();
+      ctx.stroke(); 
     }
-}
+  }
 
 function soma(){
     const size = inImg.width * inImg.height
