@@ -14,8 +14,20 @@
 
     </p>
     <p>Imagem Original</p>
-    <canvas id="img_00"></canvas>    
+    <canvas id="img_00" style="margin-left: 50xp;"></canvas>    
 
+    <p>
+        <ul>
+            <li>R: <span id="red"></span></li>
+            <li>G: <span id="green"></span></li>
+            <li>B: <span id="blue"></span></li>
+        </ul>
+        <ul>
+            <li>L: <span id="lum"></span></li>
+            <li>S: <span id="sat"></span></li>
+            <li>H: <span id="hue"></span></li>
+        </ul>
+    </p>
     <p>
         <button id="btn-save">
             Salvar
@@ -56,6 +68,9 @@
         </button>
         <button id="btn-realce-laplaciano">
             Realce Laplaciano
+        </button>
+        <button id="btn-sobel">
+            Filtro Sobel
         </button>
     </p>
     <p id="canvas-processado">

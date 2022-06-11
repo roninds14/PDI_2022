@@ -11,11 +11,89 @@ let buttonMedia = document.getElementById("btn-media")
 let buttonMediana = document.getElementById("btn-mediana")
 let buttonLaplaciano = document.getElementById("btn-laplaciano")
 let buttonRealceLaplaciano = document.getElementById("btn-realce-laplaciano")
+let buttonSobel = document.getElementById("btn-sobel")
 let inputFile = document.getElementById("input-file")
 let canvasOriginal = document.getElementById("img_00")
 let canvasProcessado = document.getElementById("img_01")
 let inImg
 const SOMA = 10 
+
+canvasOriginal.addEventListener("click",(e)=>{
+    const POSITION = canvasOriginal.getBoundingClientRect();
+    const xWindow = e.clientX
+    const yWindow = e.clientY
+
+    const xCanvas = parseInt(xWindow - POSITION.x)
+    const yCanvas = parseInt(yWindow - POSITION.y)
+
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const position = xCanvas + canvasOriginal.width * yCanvas
+
+    const r = src[position] & 0xFF
+    const g = (src[position] >> 8) & 0xFF
+    const b = (src[position] >> 16) & 0xFF
+
+    document.getElementById("red").innerHTML = r
+    document.getElementById("green").innerHTML = g
+    document.getElementById("blue").innerHTML = b
+
+    const HLV = converteHLV(new Array(r,g,b))
+
+    document.getElementById("lum").innerHTML = HLV[0]
+    document.getElementById("sat").innerHTML = HLV[1]
+    document.getElementById("hue").innerHTML = HLV[2]
+})
+
+function converteHLV( vetor ){
+	let L, S, H;
+	let cMax = Math.max( Math.max(vetor[0], vetor[1] ), vetor[2]);
+	let cMin = Math.min( Math.min(vetor[0], vetor[1] ), vetor[2]);
+	
+	L = ( ( (cMax + cMin) * 240 )+255) / (2*255);
+	
+	if (cMax == cMin) {           
+		S = 0;
+		H = '';
+	}
+	else{
+		if( L <= (240/2) ){
+			S = ( ( ( cMax-cMin ) * 240 ) + ( (cMax+cMin) / 2 ) );
+			S /= (cMax+cMin);
+		}
+		else{
+			S = ( ((cMax-cMin)*240) + ((2*255-cMax-cMin)/2) );			
+			S /=  ( 2 * 255 - cMax - cMin);
+		}
+		
+		let cont = (cMax-cMin)/2;
+		
+		let Rdelta, Gdelta, Bdelta;
+		
+		Rdelta = ( ((cMax - vetor[0])*(239/6)) + cont );
+		Rdelta /= (cMax-cMin);
+      	
+		Gdelta = ( ((cMax- vetor[1])*(239/6)) + cont );
+		Gdelta /= (cMax-cMin);
+      	
+		Bdelta = ( ((cMax- vetor[2])*(239/6)) + cont );
+		Bdelta /= (cMax-cMin);
+
+        if ( vetor[0] == cMax)
+            H = Bdelta - Gdelta;
+        else if (vetor[1] == cMax)
+            H = (240/3) + Rdelta - Bdelta;
+        else 
+            H = ((2*240)/3) + Gdelta - Rdelta;
+
+         if (H < 0)
+            H += 239;
+         if (H > 239)
+            H -= 239;			
+	}
+
+    return new Array(Math.round(L),Math.round(S),Math.round(H))
+}
 
 buttonImg.addEventListener("click", () => {
     inputFile.click()
@@ -75,6 +153,10 @@ buttonLaplaciano.addEventListener("click", () =>{
 
 buttonRealceLaplaciano.addEventListener("click", () =>{
     laplaciano(9,2)
+})
+
+buttonSobel.addEventListener("click", () =>{
+    sobel()
 })
 
 window.addEventListener('DOMContentLoaded', () =>{
@@ -495,6 +577,62 @@ function laplaciano(mult, div){
             r = Math.abs(parseInt((( src[i-width-1] & 0xFF)*(-1)+        (src[i-width] & 0xFF)*(-1)+         (src[i-width+1] & 0xFF)*(-1)+           (src[i-1] & 0xFF)*(-1)+         (src[i] & 0xFF)*(mult)+            (src[i+1] & 0xFF)*(-1)+         (src[i+width-1] & 0xFF)*(-1)+           (src[i+width] & 0xFF)*(-1)+         (src[i+width+1] & 0xFF)*(-1))/div))
             g = Math.abs(parseInt((((src[i-width-1] >> 8) & 0xFF)*(-1)+  ((src[i-width] >> 8) & 0xFF)*(-1)+ ((src[i-width+1] >> 8) & 0xFF)*(-1)+     ((src[i-1] >> 8) & 0xFF)*(-1)+  ((src[i] >> 8) & 0xFF)*(mult)+     ((src[i+1] >> 8) & 0xFF)*(-1)+  ((src[i+width-1] >> 8) & 0xFF)*(-1)+    ((src[i+width] >> 8) & 0xFF)*(-1)+  ((src[i+width+1] >> 8) & 0xFF)*(-1))/div))
             b = Math.abs(parseInt((((src[i-width-1] >> 16) & 0xFF)*(-1)+ ((src[i-width] >> 16) & 0xFF)*(-1)+ ((src[i-width+1] >> 16) & 0xFF)*(-1)+   ((src[i-1] >> 16) & 0xFF)*(-1)+ ((src[i] >> 16) & 0xFF)*(mult)+    ((src[i+1] >> 16) & 0xFF)*(-1)+ ((src[i+width-1] >> 16) & 0xFF)*(-1)+   ((src[i+width] >> 16) & 0xFF)*(-1)+ ((src[i+width+1] >> 16) & 0xFF)*(-1))/div))
+        }
+
+        if(i && !(i % width)){
+            row++
+            colunm = 0
+        }
+
+        ctx.fillStyle = rgbToHex(r,g,b);
+        ctx.fillRect(colunm,row,1,1);
+        colunm++
+    }
+}
+
+function sobel(){
+    const {width, height} = inImg
+    const size = width*height
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let row = 0
+    let colunm = 0 
+    
+    for (let i = 0; i < size; i++) {
+        let r,g,b
+        if(!colunm || colunm == width-1 || !row || row == height-1){
+            r = src[i] & 0xFF
+            g = (src[i] >> 8) & 0xFF
+            b = (src[i] >> 16) & 0xFF
+        }else{
+            r = parseInt(Math.sqrt(
+                Math.pow(
+                    ( src[i-width-1] & 0xFF)*(-1)+        (src[i-width+1] & 0xFF)+           (src[i-1] & 0xFF)*(-2)+            (src[i+1] & 0xFF)*(2)+         (src[i+width-1] & 0xFF)*(-1)+         (src[i+width+1] & 0xFF)
+                ,2) + 
+                Math.pow(
+                    ( src[i-width-1] & 0xFF)*(-1)+        (src[i-width] & 0xFF)*(-2)+         (src[i-width+1] & 0xFF)*(-1)+     (src[i+width-1] & 0xFF)+           (src[i+width] & 0xFF)*(2)+         (src[i+width+1] & 0xFF)
+                ,2)
+            ))
+            g = parseInt(Math.sqrt(
+                Math.pow(
+                    ((src[i-width-1] >> 8) & 0xFF)*(-1)+  ((src[i-width+1] >> 8) & 0xFF)+     ((src[i-1] >> 8) & 0xFF)*(-2)+    ((src[i+1] >> 8) & 0xFF)*(2)+  ((src[i+width-1] >> 8) & 0xFF)*(-1)+    ((src[i+width+1] >> 8) & 0xFF)
+                ,2)+
+                Math.pow(
+                    ((src[i-width-1] >> 8) & 0xFF)*(-1)+  ((src[i-width] >> 8) & 0xFF)*(-2)+ ((src[i-width+1] >> 8) & 0xFF)*(-1)+     ((src[i+width-1] >> 8) & 0xFF)+    ((src[i+width] >> 8) & 0xFF)*(2)+  ((src[i+width+1] >> 8) & 0xFF)
+                ,2)
+            ))
+            b = parseInt(Math.sqrt(
+                Math.pow(
+                    ((src[i-width-1] >> 16) & 0xFF)*(-1)+ ((src[i-width+1] >> 16) & 0xFF)+   ((src[i-1] >> 16) & 0xFF)*(-2)+    ((src[i+1] >> 16) & 0xFF)*(2)+ ((src[i+width-1] >> 16) & 0xFF)*(-1)+   ((src[i+width+1] >> 16) & 0xFF)
+                ,2)+
+                Math.pow(
+                    ((src[i-width-1] >> 16) & 0xFF)*(-1)+ ((src[i-width] >> 16) & 0xFF)*(-2)+ ((src[i-width+1] >> 16) & 0xFF)*(-1)+   ((src[i+width-1] >> 16) & 0xFF)+   ((src[i+width] >> 16) & 0xFF)*(2)+ ((src[i+width+1] >> 16) & 0xFF)
+                ,2)
+            ))
         }
 
         if(i && !(i % width)){
