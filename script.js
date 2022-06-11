@@ -1,6 +1,7 @@
 let buttonImg = document.getElementById("btn-img")
 let buttonProcessa = document.getElementById("btn-processa")
 let buttonCinza = document.getElementById("btn-tons-cinza")
+let buttonUp = document.getElementById("btn-up")
 let buttonSave = document.getElementById("btn-save")
 let buttonSalPimenta = document.getElementById("btn-tons-sal-pimenta")
 let buttonSepararTons = document.getElementById("btn-separar-tons")
@@ -18,7 +19,7 @@ let canvasProcessado = document.getElementById("img_01")
 let inImg
 const SOMA = 10 
 
-canvasOriginal.addEventListener("click",(e)=>{
+canvasOriginal.addEventListener("mousemove",(e)=>{
     const POSITION = canvasOriginal.getBoundingClientRect();
     const xWindow = e.clientX
     const yWindow = e.clientY
@@ -45,58 +46,15 @@ canvasOriginal.addEventListener("click",(e)=>{
     document.getElementById("hue").innerHTML = HLV[2]
 })
 
-function converteHLV( vetor ){
-	let L, S, H;
-	let cMax = Math.max( Math.max(vetor[0], vetor[1] ), vetor[2]);
-	let cMin = Math.min( Math.min(vetor[0], vetor[1] ), vetor[2]);
-	
-	L = ( ( (cMax + cMin) * 240 )+255) / (2*255);
-	
-	if (cMax == cMin) {           
-		S = 0;
-		H = '';
-	}
-	else{
-		if( L <= (240/2) ){
-			S = ( ( ( cMax-cMin ) * 240 ) + ( (cMax+cMin) / 2 ) );
-			S /= (cMax+cMin);
-		}
-		else{
-			S = ( ((cMax-cMin)*240) + ((2*255-cMax-cMin)/2) );			
-			S /=  ( 2 * 255 - cMax - cMin);
-		}
-		
-		let cont = (cMax-cMin)/2;
-		
-		let Rdelta, Gdelta, Bdelta;
-		
-		Rdelta = ( ((cMax - vetor[0])*(239/6)) + cont );
-		Rdelta /= (cMax-cMin);
-      	
-		Gdelta = ( ((cMax- vetor[1])*(239/6)) + cont );
-		Gdelta /= (cMax-cMin);
-      	
-		Bdelta = ( ((cMax- vetor[2])*(239/6)) + cont );
-		Bdelta /= (cMax-cMin);
-
-        if ( vetor[0] == cMax)
-            H = Bdelta - Gdelta;
-        else if (vetor[1] == cMax)
-            H = (240/3) + Rdelta - Bdelta;
-        else 
-            H = ((2*240)/3) + Gdelta - Rdelta;
-
-         if (H < 0)
-            H += 239;
-         if (H > 239)
-            H -= 239;			
-	}
-
-    return new Array(Math.round(L),Math.round(S),Math.round(H))
-}
-
 buttonImg.addEventListener("click", () => {
     inputFile.click()
+})
+
+buttonSave.addEventListener("click", () =>{
+    const a = document.createElement('a')
+    a.download = 'img-alterada.png';
+    a.href = canvasOriginal.toDataURL();
+    a.click()
 })
 
 buttonProcessa.addEventListener("click", () => {
@@ -107,7 +65,7 @@ buttonCinza.addEventListener("click", () => {
     converterParaCinza()
 })
 
-buttonSave.addEventListener("click", () => {
+buttonUp.addEventListener("click", () => {
     let ctx = canvasOriginal.getContext('2d')    
     ctx.drawImage(canvasProcessado,0,0)
     let ctxProcessado = canvasProcessado.getContext('2d')
@@ -644,4 +602,54 @@ function sobel(){
         ctx.fillRect(colunm,row,1,1);
         colunm++
     }
+}
+
+function converteHLV( vetor ){
+	let L, S, H;
+	let cMax = Math.max( Math.max(vetor[0], vetor[1] ), vetor[2]);
+	let cMin = Math.min( Math.min(vetor[0], vetor[1] ), vetor[2]);
+	
+	L = ( ( (cMax + cMin) * 240 )+255) / (2*255);
+	
+	if (cMax == cMin) {           
+		S = 0;
+		H = '';
+	}
+	else{
+		if( L <= (240/2) ){
+			S = ( ( ( cMax-cMin ) * 240 ) + ( (cMax+cMin) / 2 ) );
+			S /= (cMax+cMin);
+		}
+		else{
+			S = ( ((cMax-cMin)*240) + ((2*255-cMax-cMin)/2) );			
+			S /=  ( 2 * 255 - cMax - cMin);
+		}
+		
+		let cont = (cMax-cMin)/2;
+		
+		let Rdelta, Gdelta, Bdelta;
+		
+		Rdelta = ( ((cMax - vetor[0])*(239/6)) + cont );
+		Rdelta /= (cMax-cMin);
+      	
+		Gdelta = ( ((cMax- vetor[1])*(239/6)) + cont );
+		Gdelta /= (cMax-cMin);
+      	
+		Bdelta = ( ((cMax- vetor[2])*(239/6)) + cont );
+		Bdelta /= (cMax-cMin);
+
+        if ( vetor[0] == cMax)
+            H = Bdelta - Gdelta;
+        else if (vetor[1] == cMax)
+            H = (240/3) + Rdelta - Bdelta;
+        else 
+            H = ((2*240)/3) + Gdelta - Rdelta;
+
+         if (H < 0)
+            H += 239;
+         if (H > 239)
+            H -= 239;			
+	}
+
+    return new Array(Math.round(L),Math.round(S),Math.round(H))
 }
