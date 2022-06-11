@@ -2,83 +2,89 @@
 <html>
 <head>
     <title>Trabalho PDI</title>
+
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
 
-    <h1>Desenvolvido por Roni</h1>
-    <p>
-        <button id="btn-img">
-            <input id="input-file" type="file" style="display: none;" />
-            Selecionar Imagem
-        </button>
+    <h1 id="title">Trabalho Bimestral de PDI</h1>
+    <div id="div-img-original">
+        <p>
+            <button id="btn-img">
+                <input id="input-file" type="file" style="display: none;" />
+                Selecione a Imagem para Começar
+            </button>
 
-    </p>
-    <p>Imagem Original</p>
-    <canvas id="img_00" style="margin-left: 50xp;"></canvas>    
+        </p>
+        <canvas id="img_00" style="margin-left: 50xp;"></canvas>    
 
-    <p>
-        <ul>
-            <li>R: <span id="red"></span></li>
-            <li>G: <span id="green"></span></li>
-            <li>B: <span id="blue"></span></li>
-        </ul>
-        <ul>
-            <li>L: <span id="lum"></span></li>
-            <li>S: <span id="sat"></span></li>
-            <li>H: <span id="hue"></span></li>
-        </ul>
-    </p>
-    <p>
-        <button id="btn-save">
-            Salvar
-        </button>
-        <button id="btn-up">
-            &uarr;
-        </button>
-    </p>
+        <p>
+            <ul>
+                <li>R: <span id="red"></span></li>
+                <li>G: <span id="green"></span></li>
+                <li>B: <span id="blue"></span></li>
+            </ul>
+            <ul>
+                <li>L: <span id="lum"></span></li>
+                <li>S: <span id="sat"></span></li>
+                <li>H: <span id="hue"></span></li>
+            </ul>
+        </p>
+        <p>
+            <button id="btn-save">
+                Salvar
+            </button>
+            <button id="btn-up">
+                &uarr;
+            </button>
+        </p>
+    </div>
 
-    <p>Imagem processada</p>
-    <p>
-        <button id="btn-processa">
-            &darr;
-        </button>
-        <button id="btn-tons-cinza">
-            Converter para Tons de Cinza
-        </button>
-        <button id="btn-tons-sal-pimenta">
-            Adicionar ruído Sal/Pimenta
-        </button>
-        <button id="btn-separar-tons">
-            Separar Canais
-        </button>
-        <button id="btn-histograma">
-            Histograma - Tons de Cinza
-        </button>
-        <button id="btn-histograma-color">
-            Histograma - RGB
-        </button>
-        <button id="btn-soma">
-            Soma
-        </button>
-        <button id="btn-media">
-            Média
-        </button>
-        <button id="btn-mediana">
-            Mediana
-        </button>
-        <button id="btn-laplaciano">
-            Laplaciano
-        </button>
-        <button id="btn-realce-laplaciano">
-            Realce Laplaciano
-        </button>
-        <button id="btn-sobel">
-            Filtro Sobel
-        </button>
-    </p>
-    <p id="canvas-processado">
-        <canvas id="img_01"></canvas>
-    </p>
+    <hr>
+
+    <div id="div-img-processada">
+        <p>
+            <button id="btn-processa">
+                &darr;
+            </button>
+            <button id="btn-tons-cinza">
+                Converter para Tons de Cinza
+            </button>
+            <button id="btn-tons-sal-pimenta">
+                Adicionar ruído Sal/Pimenta
+            </button>
+            <button id="btn-separar-tons">
+                Separar Canais
+            </button>
+            <button id="btn-histograma">
+                Histograma - Tons de Cinza
+            </button>
+            <button id="btn-histograma-color">
+                Histograma - RGB
+            </button>
+            <button id="btn-soma">
+                Soma
+            </button>
+            <button id="btn-media">
+                Média
+            </button>
+            <button id="btn-mediana">
+                Mediana
+            </button>
+            <button id="btn-laplaciano">
+                Laplaciano
+            </button>
+            <button id="btn-realce-laplaciano">
+                Realce Laplaciano
+            </button>
+            <button id="btn-sobel">
+                Filtro Sobel
+            </button>
+        </p>
+        <p id="canvas-processado">
+            <canvas id="img_01"></canvas>
+        </p>
+    </div>
 
 </body>
 

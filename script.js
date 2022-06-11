@@ -286,9 +286,9 @@ function separarTons(){
         colunm++
     }
 
-    document.getElementById("canvas-processado").appendChild(canvasRed)
-    document.getElementById("canvas-processado").appendChild(canvasBlue)
+    document.getElementById("canvas-processado").appendChild(canvasRed)    
     document.getElementById("canvas-processado").appendChild(canvasGreen)
+    document.getElementById("canvas-processado").appendChild(canvasBlue)
 }
 
 function rgbToHex(r,g,b){
