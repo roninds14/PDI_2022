@@ -20,6 +20,7 @@ button{
 
 ul{
     list-style: none;
+    padding: 10px;
 }
 
 canvas{
@@ -29,6 +30,12 @@ canvas{
 hr{
     height: 15px;
     border-radius: 5px;
+}
+
+footer{
+    width: 100%;
+    text-align: center;
+    margin-top: 70px;
 }
 
 #title{
@@ -46,4 +53,23 @@ hr{
     margin: auto;
     text-align: center;
 
+}
+
+#tons{
+    position: absolute;
+    left: 150px;
+    top: 0;
+    display: none;
+    
+}
+
+#canvas-click{
+    display: none;
+    margin: 15px
+}
+
+.canvas-data{
+    display: flex;
+    border: 10px double #FFFC4F;
+    border-radius: 5px;    
 }

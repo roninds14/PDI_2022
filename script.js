@@ -1,4 +1,4 @@
-let buttonImg = document.getElementById("btn-img")
+ let buttonImg = document.getElementById("btn-img")
 let buttonProcessa = document.getElementById("btn-processa")
 let buttonCinza = document.getElementById("btn-tons-cinza")
 let buttonUp = document.getElementById("btn-up")
@@ -35,6 +35,9 @@ canvasOriginal.addEventListener("mousemove",(e)=>{
     const g = (src[position] >> 8) & 0xFF
     const b = (src[position] >> 16) & 0xFF
 
+    document.getElementById("x").innerHTML = xCanvas
+    document.getElementById("y").innerHTML = yCanvas
+
     document.getElementById("red").innerHTML = r
     document.getElementById("green").innerHTML = g
     document.getElementById("blue").innerHTML = b
@@ -46,11 +49,45 @@ canvasOriginal.addEventListener("mousemove",(e)=>{
     document.getElementById("hue").innerHTML = HLV[2]
 })
 
+canvasOriginal.addEventListener("click",(e)=>{
+    const POSITION = canvasOriginal.getBoundingClientRect();
+    const xWindow = e.clientX
+    const yWindow = e.clientY
+
+    const xCanvas = parseInt(xWindow - POSITION.x)
+    const yCanvas = parseInt(yWindow - POSITION.y)
+
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const position = xCanvas + canvasOriginal.width * yCanvas
+
+    const r = src[position] & 0xFF
+    const g = (src[position] >> 8) & 0xFF
+    const b = (src[position] >> 16) & 0xFF
+
+    document.getElementById("x_click").innerHTML = xCanvas
+    document.getElementById("y_click").innerHTML = yCanvas
+
+    document.getElementById("red_click").innerHTML = r
+    document.getElementById("green_click").innerHTML = g
+    document.getElementById("blue_click").innerHTML = b
+
+    const HLV = converteHLV(new Array(r,g,b))
+
+    document.getElementById("lum_click").innerHTML = HLV[0]
+    document.getElementById("sat_click").innerHTML = HLV[1]
+    document.getElementById("hue_click").innerHTML = HLV[2]
+
+    document.getElementById("canvas-click").style.display = "flex"
+})
+
 buttonImg.addEventListener("click", () => {
+    addCanvas()
     inputFile.click()
 })
 
 buttonSave.addEventListener("click", () =>{
+    addCanvas()
     const a = document.createElement('a')
     a.download = 'img-alterada.png';
     a.href = canvasOriginal.toDataURL();
@@ -58,10 +95,12 @@ buttonSave.addEventListener("click", () =>{
 })
 
 buttonProcessa.addEventListener("click", () => {
+    addCanvas()
     processaImage()
 })
 
 buttonCinza.addEventListener("click", () => {
+    addCanvas()
     converterParaCinza()
 })
 
@@ -73,6 +112,7 @@ buttonUp.addEventListener("click", () => {
 })
 
 buttonSalPimenta.addEventListener("click", () => {
+    addCanvas()
     const canvas = ruidoSalPimenta()
     const {width, height} = canvas
     canvasProcessado.width = width
@@ -82,38 +122,47 @@ buttonSalPimenta.addEventListener("click", () => {
 })
 
 buttonSepararTons.addEventListener("click",  () =>{
+    addCanvas()
     separarTons()
 })
 
 buttonHistograma.addEventListener("click", () =>{
+    addCanvas()
     equalizacaoHistograma(true)
 })
 
 buttonHistogramaColor.addEventListener("click", () =>{
+    addCanvas()
     equalizacaoHistograma(false)
 })
 
 buttonSoma.addEventListener("click", () =>{
+    addCanvas()
     soma()
 })
 
 buttonMedia.addEventListener("click", () =>{
+    addCanvas()
     media()
 })
 
 buttonMediana.addEventListener("click", () =>{
+    addCanvas()
     mediana()
 })
 
 buttonLaplaciano.addEventListener("click", () =>{
+    addCanvas()
     laplaciano(8,8)
 })
 
 buttonRealceLaplaciano.addEventListener("click", () =>{
+    addCanvas()
     laplaciano(9,2)
 })
 
 buttonSobel.addEventListener("click", () =>{
+    addCanvas()
     sobel()
 })
 
@@ -135,8 +184,21 @@ window.addEventListener('DOMContentLoaded', () =>{
                 context.drawImage(image, 0, 0)
 
                 inImg  = context.getImageData(0, 0, image.width, image.height) 
+
+                let tons = document.getElementById("tons")
+                tons.style.display = "block"
+
+                const POSITION = canvasOriginal.getBoundingClientRect();
+
+                let top = POSITION.y + 10
+                let left = POSITION.x + inImg.width + 50
+
+                tons.style.top = top + "px"
+                tons.style.left = left + "px"
             }            
-        }
+        } 
+
+        document.getElementById("canvas-click").style.display = "none"
     })    
 })
 
@@ -286,9 +348,28 @@ function separarTons(){
         colunm++
     }
 
+    let elemento = document.getElementById("canvas-processado");
+    while (elemento.firstChild) {
+        elemento.removeChild(elemento.firstChild);
+    }
+
     document.getElementById("canvas-processado").appendChild(canvasRed)    
     document.getElementById("canvas-processado").appendChild(canvasGreen)
     document.getElementById("canvas-processado").appendChild(canvasBlue)
+}
+
+function addCanvas(){
+    let elemento = document.getElementById("canvas-processado");
+    while (elemento.firstChild) {
+        elemento.removeChild(elemento.firstChild);
+    }
+
+    let canvas = document.createElement("canvas")
+    canvas.id = 'img_01'
+
+    canvasProcessado = canvas
+
+    elemento.appendChild(canvas)
 }
 
 function rgbToHex(r,g,b){

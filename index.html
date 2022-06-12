@@ -18,18 +18,40 @@
         </p>
         <canvas id="img_00" style="margin-left: 50xp;"></canvas>    
 
-        <p>
-            <ul>
-                <li>R: <span id="red"></span></li>
-                <li>G: <span id="green"></span></li>
-                <li>B: <span id="blue"></span></li>
-            </ul>
-            <ul>
-                <li>L: <span id="lum"></span></li>
-                <li>S: <span id="sat"></span></li>
-                <li>H: <span id="hue"></span></li>
-            </ul>
-        </p>
+        <div id="tons">
+            <div class="canvas-data">
+                <ul>
+                    <li>x: <span id="x"></span></li>
+                    <li>y: <span id="y"></span></li>
+                </ul>
+                <ul>
+                    <li>R: <span id="red"></span></li>
+                    <li>G: <span id="green"></span></li>
+                    <li>B: <span id="blue"></span></li>
+                </ul>
+                <ul>
+                    <li>L: <span id="lum"></span></li>
+                    <li>S: <span id="sat"></span></li>
+                    <li>H: <span id="hue"></span></li>
+                </ul>
+            </div>
+            <div id="canvas-click" class="canvas-data">
+                <ul>
+                    <li>x: <span id="x_click"></span></li>
+                    <li>y: <span id="y_click"></span></li>
+                </ul>
+                <ul>
+                    <li>R: <span id="red_click"></span></li>
+                    <li>G: <span id="green_click"></span></li>
+                    <li>B: <span id="blue_click"></span></li>
+                </ul>
+                <ul>
+                    <li>L: <span id="lum_click"></span></li>
+                    <li>S: <span id="sat_click"></span></li>
+                    <li>H: <span id="hue_click"></span></li>
+                </ul>
+            </div>
+        </div>
         <p>
             <button id="btn-save">
                 Salvar
@@ -85,6 +107,11 @@
             <canvas id="img_01"></canvas>
         </p>
     </div>
+
+    <footer>
+        <p>Desenvolvido por Roni dos Santos</p>
+        <p>Código fonte: <a href="https://github.com/roninds14/PDI_2022" target="_blank">GIT</a></p>
+    </footer>
 
 </body>
 
