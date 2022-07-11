@@ -73,3 +73,7 @@ footer{
     border: 10px double #FFFC4F;
     border-radius: 5px;    
 }
+
+.priBimestre{
+    display: none;
+}

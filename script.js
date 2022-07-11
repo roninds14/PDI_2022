@@ -19,6 +19,10 @@ let canvasProcessado = document.getElementById("img_01")
 let inImg
 const SOMA = 10 
 
+/*********************************
+ * CONTEUDO DO PRIMEIRO BIMESTRE *
+ *********************************/
+
 canvasOriginal.addEventListener("mousemove",(e)=>{
     const POSITION = canvasOriginal.getBoundingClientRect();
     const xWindow = e.clientX
@@ -733,4 +737,48 @@ function converteHLV( vetor ){
 	}
 
     return new Array(Math.round(L),Math.round(S),Math.round(H))
+}
+
+/*****************************
+ * CONTEUDO SEGUNDO BIMESTRE *
+ *****************************/
+
+function dctTransform( matrix ){
+    //const {width, height} = inImg;
+const width = 8
+const height = 8
+
+    let i, j, k, l;
+    let ci, cj, dct1, sum;
+
+    let dct = (new Array(8)).fill((new Array(8)).fill(0))
+
+    for(i = 0; i < width; i++){
+        for(j = 0; j < height; j++){
+            if(i == 0){
+                ci = 1 / Math.sqrt(width)
+            }
+            else{
+                ci = Math.sqrt(2) / Math.sqrt(width)
+            }
+
+            if(j == 0){
+                cj = 1 / Math.sqrt(height)
+            }
+            else{
+                ci = Math.sqrt(2) / Math.sqrt(height)
+            }
+
+            sum = 0;
+            for(k = 0; k < width; k++){
+                for(l = 0; l < height; l++){
+                    dct1 = matrix[k][l] * Math.cos((2*k+1)*i*Math.PI/(2*width)) * Math.cos((2*l+1)*j*Math.PI/(2*height))
+                    sum+= dct1        
+                }
+            }
+            dct[i][j] = ci*cj*sum
+        }
+    }
+
+    return dct
 }
