@@ -18,6 +18,9 @@ let canvasOriginal = document.getElementById("img_00")
 let canvasProcessado = document.getElementById("img_01")
 let inImg
 const SOMA = 10
+
+let buttonDCT = document.getElementById("btn-dct")
+let buttonIDCT = document.getElementById("btn-idct")
 const PI = 3.142857
 
 /*********************************
@@ -744,11 +747,117 @@ function converteHLV(vetor) {
  * CONTEUDO SEGUNDO BIMESTRE *
  *****************************/
 
-function dctTransform(matrix) {
-    //const {width, height} = inImg;
-    const width = 8
-    const height = 8
+buttonDCT.addEventListener("click", () => {
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+    
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
 
+    let matriz = []
+
+    let arange = {
+        max: Math.min,
+        min: Math.max
+      };
+
+    for (i = 0; i < width; i++)
+    {
+        matriz[i] = []; 
+        for (j = 0; j < height; j++) 
+        {
+            matriz[i][j] = 0
+        }
+    }
+
+    let r, g, b
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    matriz = dctTransform(matriz, arange)
+
+    matriz = equalizacao(matriz, arange)
+
+    for(let i = 0; i < width; i++){
+        for(let j = 0; j < height; j++){
+            ctx.fillStyle = rgbToHex(matriz[i][j], matriz[i][j], matriz[i][j])
+            ctx.fillRect(i, j, 1, 1)
+        }
+    }
+
+})
+
+buttonIDCT.addEventListener("click", () => {
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+    
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let matriz = []
+
+    let arange = {
+        max: Math.min,
+        min: Math.max
+      };
+
+    for (i = 0; i < width; i++)
+    {
+        matriz[i] = []; 
+        for (j = 0; j < height; j++) 
+        {
+            matriz[i][j] = 0
+        }
+    }
+
+    let r, g, b
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    matriz = dctTransform(matriz, arange)
+
+    matriz = iDctTransform(matriz)
+
+    matriz = equalizacao(matriz, arange)
+
+    for(let i = 0; i < width; i++){
+        for(let j = 0; j < height; j++){
+            ctx.fillStyle = rgbToHex(matriz[i][j], matriz[i][j], matriz[i][j])
+            ctx.fillRect(i, j, 1, 1)
+        }
+    }
+
+})
+
+function equalizacao(matriz, arange){
+    const { width, height } = inImg
+
+    for(let i = 0; i < width; i++){
+        for(let j = 0; j < height; j++){
+            matriz[i][j] = parseInt(((matriz[i][j] - arange.min)*255)/(arange.max - arange.min))
+        }
+    }
+
+    return matriz
+}
+
+function dctTransform(matrix, arange) {
+    const {width, height} = inImg;
+    
     let i, j, k, l;
     let ci, cj, dct1, sum;
 
@@ -790,6 +899,9 @@ function dctTransform(matrix) {
                 }
             }            
             dct[i][j] = ci * cj * sum
+
+            arange.max = arange.max > dct[i][j]? arange.max: dct[i][j]
+            arange.min = arange.min < dct[i][j]? arange.min: dct[i][j]
         }
     }
 
@@ -797,10 +909,8 @@ function dctTransform(matrix) {
 }
 
 function iDctTransform(matrix) {
-    //const {width, height} = inImg;
-    const width = 8
-    const height = 8
-
+    const {width, height} = inImg;
+    
     let i, j, k, l;
     let ci, cj, dct1, sum;
 
