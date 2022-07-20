@@ -22,6 +22,7 @@ const SOMA = 10
 
 let buttonLoG = document.getElementById("btn-log")
 let buttonDCT = document.getElementById("btn-dct")
+let buttonDCTAlta = document.getElementById("btn-dct-alta")
 let buttonIDCT = document.getElementById("btn-idct")
 let buttonMax = document.getElementById("btn-max")
 let buttonMin = document.getElementById("btn-min")
@@ -780,7 +781,15 @@ buttonLoG.addEventListener("click", () => {
         matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
     }
 
-    matrix = laplacianodaGaussiana(matriz)
+    let arange = {
+        max: Number.MIN_SAFE_INTEGER,
+        min: Number.MAX_SAFE_INTEGER
+    };
+
+
+    matrix = laplacianodaGaussiana(matriz, arange)
+
+    matrix = equalizacao(matrix, arange)
 
     for (let i = 0; i < width; i++) {
         for (let j = 0; j < height; j++) {
@@ -802,8 +811,8 @@ buttonDCT.addEventListener("click", () => {
     let matriz = []
 
     let arange = {
-        max: Math.min,
-        min: Math.max
+        max: Number.MIN_SAFE_INTEGER,
+        min: Number.MAX_SAFE_INTEGER
     };
 
     for (i = 0; i < width; i++) {
@@ -847,8 +856,8 @@ buttonIDCT.addEventListener("click", () => {
     let matriz = []
 
     let arange = {
-        max: Math.min,
-        min: Math.max
+        max: Number.MIN_SAFE_INTEGER,
+        min: Number.MAX_SAFE_INTEGER
     };
 
     for (i = 0; i < width; i++) {
@@ -870,7 +879,10 @@ buttonIDCT.addEventListener("click", () => {
 
     matriz = dctTransform(matriz, arange)
 
-    matriz = iDctTransform(matriz)
+    arange.max = Number.MIN_SAFE_INTEGER,
+    arange.min = Number.MAX_SAFE_INTEGER
+
+    matriz = iDctTransform(matriz, arange)
 
     matriz = equalizacao(matriz, arange)
 
@@ -1054,15 +1066,29 @@ buttonMed.addEventListener("click", () =>{
 })
 
 // Laplaciano da Gaussiana utilizado para detecção de bordas e suavização da imagem resultante
-function laplacianodaGaussiana(matriz) {
+function laplacianodaGaussiana(matriz, arange) {
     const { width, height } = inImg
     for (let i = 1; i < width; i++) {
         for (let j = 1; j < height; j++) {
-            matriz[i][j] = - inImg.data[((inImg.width * (j + 3)) + i) * 4] - inImg.data[((inImg.width * (j + 2)) + (i + 1)) * 4] - (2 * inImg.data[((inImg.width * (j + 3)) + (i + 1)) * 4])
-            - inImg.data[((inImg.width * (j + 4)) + (i + 1)) * 4] - inImg.data[((inImg.width * (j)) + (i + 3)) * 4] - (2 * inImg.data[((inImg.width * (j + 2)) + (i + 3)) * 4])
-            + ( 16 * inImg.data[((inImg.width * (j + 3)) + (i + 3)) * 4]) - (2 * inImg.data[((inImg.width * (j + 4)) + (i + 3)) * 4]) - inImg.data[((inImg.width * (j + 5)) + (i + 3)) * 4]
-            - inImg.data[((inImg.width * (j + 2)) + (i + 4)) * 4] - (2 * inImg.data[((inImg.width * (j + 3)) + (i + 4)) * 4]) - inImg.data[((inImg.width * (j + 4)) + (i + 4)) * 4]
-            - inImg.data[((inImg.width * (j + 3)) + (i + 5)) * 4]
+            matriz[i][j] = 
+                - inImg.data[((inImg.width * (j + 3)) + i) * 4] 
+                - inImg.data[((inImg.width * (j + 2)) + (i + 1)) * 4] 
+                - (2 * inImg.data[((inImg.width * (j + 3)) + (i + 1)) * 4])
+                - inImg.data[((inImg.width * (j + 4)) + (i + 1)) * 4] 
+                - inImg.data[((inImg.width * (j)) + (i + 3)) * 4] 
+                - (2 * inImg.data[((inImg.width * (j + 2)) + (i + 3)) * 4])
+                
+                + ( 16 * inImg.data[((inImg.width * (j + 3)) + (i + 3)) * 4]) 
+                
+                - (2 * inImg.data[((inImg.width * (j + 4)) + (i + 3)) * 4]) 
+                - inImg.data[((inImg.width * (j + 5)) + (i + 3)) * 4]
+                - inImg.data[((inImg.width * (j + 2)) + (i + 4)) * 4] 
+                - (2 * inImg.data[((inImg.width * (j + 3)) + (i + 4)) * 4]) 
+                - inImg.data[((inImg.width * (j + 4)) + (i + 4)) * 4]
+                - inImg.data[((inImg.width * (j + 3)) + (i + 5)) * 4]
+
+                arange.max = arange.max < matriz[i][j] ? matriz[i][j] : arange.max
+                arange.min = arange.min > matriz[i][j] ? matriz[i][j] : arange.min
         }
     }
     return matriz
@@ -1133,7 +1159,7 @@ function dctTransform(matrix, arange) {
     return dct
 }
 
-function iDctTransform(matrix) {
+function iDctTransform(matrix, arange) {
     const { width, height } = inImg;
 
     let i, j, k, l;
@@ -1175,6 +1201,9 @@ function iDctTransform(matrix) {
                 }
             }
             dct[i][j] = sum
+
+            arange.max = arange.max < sum? sum: arange.max
+            arange.min = arange.min > sum? sum: arange.min
         }
     }
     return dct
