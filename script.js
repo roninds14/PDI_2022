@@ -16,11 +16,17 @@ let buttonSobel = document.getElementById("btn-sobel")
 let inputFile = document.getElementById("input-file")
 let canvasOriginal = document.getElementById("img_00")
 let canvasProcessado = document.getElementById("img_01")
+
 let inImg
 const SOMA = 10
 
+let buttonLoG = document.getElementById("btn-log")
 let buttonDCT = document.getElementById("btn-dct")
 let buttonIDCT = document.getElementById("btn-idct")
+let buttonMax = document.getElementById("btn-max")
+let buttonMin = document.getElementById("btn-min")
+let buttonMed = document.getElementById("btn-med")
+
 const PI = 3.142857
 
 /*********************************
@@ -747,10 +753,48 @@ function converteHLV(vetor) {
  * CONTEUDO SEGUNDO BIMESTRE *
  *****************************/
 
+buttonLoG.addEventListener("click", () => {
+    const { width, height } = inImg
+    const src = new Uint8ClampedArray(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let matriz = []
+
+    for (i = 0; i < width; i++) {
+        matriz[i] = [];
+        for (j = 0; j < height; j++) {
+            matriz[i][j] = 0
+        }
+    }
+
+    let r, g, b
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    matrix = laplacianodaGaussiana(matriz)
+
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            ctx.fillStyle = rgbToHex(matrix[i][j], matrix[i][j], matrix[i][j])
+            ctx.fillRect(i, j, 1, 1)
+        }
+    }
+})
+
+
 buttonDCT.addEventListener("click", () => {
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
-    
+
     const ctx = canvasProcessado.getContext('2d')
     canvasProcessado.width = width
     canvasProcessado.height = height
@@ -760,13 +804,11 @@ buttonDCT.addEventListener("click", () => {
     let arange = {
         max: Math.min,
         min: Math.max
-      };
+    };
 
-    for (i = 0; i < width; i++)
-    {
-        matriz[i] = []; 
-        for (j = 0; j < height; j++) 
-        {
+    for (i = 0; i < width; i++) {
+        matriz[i] = [];
+        for (j = 0; j < height; j++) {
             matriz[i][j] = 0
         }
     }
@@ -785,8 +827,8 @@ buttonDCT.addEventListener("click", () => {
 
     matriz = equalizacao(matriz, arange)
 
-    for(let i = 0; i < width; i++){
-        for(let j = 0; j < height; j++){
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
             ctx.fillStyle = rgbToHex(matriz[i][j], matriz[i][j], matriz[i][j])
             ctx.fillRect(i, j, 1, 1)
         }
@@ -797,7 +839,7 @@ buttonDCT.addEventListener("click", () => {
 buttonIDCT.addEventListener("click", () => {
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
-    
+
     const ctx = canvasProcessado.getContext('2d')
     canvasProcessado.width = width
     canvasProcessado.height = height
@@ -807,13 +849,11 @@ buttonIDCT.addEventListener("click", () => {
     let arange = {
         max: Math.min,
         min: Math.max
-      };
+    };
 
-    for (i = 0; i < width; i++)
-    {
-        matriz[i] = []; 
-        for (j = 0; j < height; j++) 
-        {
+    for (i = 0; i < width; i++) {
+        matriz[i] = [];
+        for (j = 0; j < height; j++) {
             matriz[i][j] = 0
         }
     }
@@ -834,8 +874,8 @@ buttonIDCT.addEventListener("click", () => {
 
     matriz = equalizacao(matriz, arange)
 
-    for(let i = 0; i < width; i++){
-        for(let j = 0; j < height; j++){
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
             ctx.fillStyle = rgbToHex(matriz[i][j], matriz[i][j], matriz[i][j])
             ctx.fillRect(i, j, 1, 1)
         }
@@ -843,12 +883,199 @@ buttonIDCT.addEventListener("click", () => {
 
 })
 
-function equalizacao(matriz, arange){
+buttonMax.addEventListener("click", () =>{
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let ints = []
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        ints[i] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    let max
+
+    for (let i = 0; i < src.length; i++) {
+        if(
+            ints[i-width-1] > 0 &&
+            ints[i-width] > 0 &&
+            ints[i-width+1] > 0 &&
+            ints[i-1] > 0 &&
+            ints[i+1] < src.length &&
+            ints[i+width-1] < src.length &&
+            ints[i+width] < src.length &&
+            ints[i+width+1] < src.length 
+        ){
+            max = Math.max(
+                ints[i-width-1],
+                ints[i-width],
+                ints[i-width+1],
+                ints[i-1],
+                ints[i],
+                ints[i+1],
+                ints[i+width-1],
+                ints[i+width],
+                ints[i+width+1]
+            )
+        }
+        else{
+            max = ints[i]
+        }
+        
+        ctx.fillStyle = rgbToHex(max, max, max)
+        ctx.fillRect(i%width, parseInt(i/width), 1, 1)
+    }
+})
+
+buttonMin.addEventListener("click", () =>{
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let ints = []
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        ints[i] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    let min
+
+    for (let i = 0; i < src.length; i++) {
+        if(
+            ints[i-width-1] > 0 &&
+            ints[i-width] > 0 &&
+            ints[i-width+1] > 0 &&
+            ints[i-1] > 0 &&
+            ints[i+1] < src.length &&
+            ints[i+width-1] < src.length &&
+            ints[i+width] < src.length &&
+            ints[i+width+1] < src.length 
+        ){
+            min = Math.min(
+                ints[i-width-1],
+                ints[i-width],
+                ints[i-width+1],
+                ints[i-1],
+                ints[i],
+                ints[i+1],
+                ints[i+width-1],
+                ints[i+width],
+                ints[i+width+1]
+            )
+        }
+        else{
+            min = ints[i]
+        }
+        
+        ctx.fillStyle = rgbToHex(min, min, min)
+        ctx.fillRect(i%width, parseInt(i/width), 1, 1)
+    }
+})
+
+buttonMed.addEventListener("click", () =>{
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let ints = []
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        ints[i] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    let min, max, med
+
+    for (let i = 0; i < src.length; i++) {
+        if(
+            ints[i-width-1] > 0 &&
+            ints[i-width] > 0 &&
+            ints[i-width+1] > 0 &&
+            ints[i-1] > 0 &&
+            ints[i+1] < src.length &&
+            ints[i+width-1] < src.length &&
+            ints[i+width] < src.length &&
+            ints[i+width+1] < src.length 
+        ){
+            min = Math.min(
+                ints[i-width-1],
+                ints[i-width],
+                ints[i-width+1],
+                ints[i-1],
+                ints[i],
+                ints[i+1],
+                ints[i+width-1],
+                ints[i+width],
+                ints[i+width+1]
+            )
+
+            max = Math.max(
+                ints[i-width-1],
+                ints[i-width],
+                ints[i-width+1],
+                ints[i-1],
+                ints[i],
+                ints[i+1],
+                ints[i+width-1],
+                ints[i+width],
+                ints[i+width+1]
+            )
+
+            med = parseInt((max+min)/2)
+        }
+        else{
+            med = ints[i]
+        }
+        
+        ctx.fillStyle = rgbToHex(med, med, med)
+        ctx.fillRect(i%width, parseInt(i/width), 1, 1)
+    }
+})
+
+// Laplaciano da Gaussiana utilizado para detecção de bordas e suavização da imagem resultante
+function laplacianodaGaussiana(matriz) {
+    const { width, height } = inImg
+    for (let i = 1; i < width; i++) {
+        for (let j = 1; j < height; j++) {
+            matriz[i][j] = - inImg.data[((inImg.width * (j + 3)) + i) * 4] - inImg.data[((inImg.width * (j + 2)) + (i + 1)) * 4] - (2 * inImg.data[((inImg.width * (j + 3)) + (i + 1)) * 4])
+            - inImg.data[((inImg.width * (j + 4)) + (i + 1)) * 4] - inImg.data[((inImg.width * (j)) + (i + 3)) * 4] - (2 * inImg.data[((inImg.width * (j + 2)) + (i + 3)) * 4])
+            + ( 16 * inImg.data[((inImg.width * (j + 3)) + (i + 3)) * 4]) - (2 * inImg.data[((inImg.width * (j + 4)) + (i + 3)) * 4]) - inImg.data[((inImg.width * (j + 5)) + (i + 3)) * 4]
+            - inImg.data[((inImg.width * (j + 2)) + (i + 4)) * 4] - (2 * inImg.data[((inImg.width * (j + 3)) + (i + 4)) * 4]) - inImg.data[((inImg.width * (j + 4)) + (i + 4)) * 4]
+            - inImg.data[((inImg.width * (j + 3)) + (i + 5)) * 4]
+        }
+    }
+    return matriz
+}
+
+
+
+function equalizacao(matriz, arange) {
     const { width, height } = inImg
 
-    for(let i = 0; i < width; i++){
-        for(let j = 0; j < height; j++){
-            matriz[i][j] = parseInt(((matriz[i][j] - arange.min)*255)/(arange.max - arange.min))
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            matriz[i][j] = parseInt(((matriz[i][j] - arange.min) * 255) / (arange.max - arange.min))
         }
     }
 
@@ -856,18 +1083,16 @@ function equalizacao(matriz, arange){
 }
 
 function dctTransform(matrix, arange) {
-    const {width, height} = inImg;
-    
+    const { width, height } = inImg;
+
     let i, j, k, l;
     let ci, cj, dct1, sum;
 
     let dct = []
 
-    for (i = 0; i < width; i++)
-    {
-        dct[i] = []; 
-        for (j = 0; j < height; j++) 
-        {
+    for (i = 0; i < width; i++) {
+        dct[i] = [];
+        for (j = 0; j < height; j++) {
             dct[i][j] = 0
         }
     }
@@ -892,16 +1117,16 @@ function dctTransform(matrix, arange) {
             for (k = 0; k < width; k++) {
                 for (l = 0; l < height; l++) {
                     dct1 = matrix[k][l] *
-                    Math.cos((2 * k + 1) * i * PI / (2 * width)) *
-                    Math.cos((2 * l + 1) * j * PI / (2 * height));
-                    
+                        Math.cos((2 * k + 1) * i * PI / (2 * width)) *
+                        Math.cos((2 * l + 1) * j * PI / (2 * height));
+
                     sum += dct1
                 }
-            }            
+            }
             dct[i][j] = ci * cj * sum
 
-            arange.max = arange.max > dct[i][j]? arange.max: dct[i][j]
-            arange.min = arange.min < dct[i][j]? arange.min: dct[i][j]
+            arange.max = arange.max > dct[i][j] ? arange.max : dct[i][j]
+            arange.min = arange.min < dct[i][j] ? arange.min : dct[i][j]
         }
     }
 
@@ -909,18 +1134,16 @@ function dctTransform(matrix, arange) {
 }
 
 function iDctTransform(matrix) {
-    const {width, height} = inImg;
-    
+    const { width, height } = inImg;
+
     let i, j, k, l;
     let ci, cj, dct1, sum;
 
     let dct = []
 
-    for (i = 0; i < width; i++)
-    {
-        dct[i] = []; 
-        for (j = 0; j < height; j++) 
-        {
+    for (i = 0; i < width; i++) {
+        dct[i] = [];
+        for (j = 0; j < height; j++) {
             dct[i][j] = 0
         }
     }
@@ -944,13 +1167,13 @@ function iDctTransform(matrix) {
             sum = 0;
             for (k = 0; k < width; k++) {
                 for (l = 0; l < height; l++) {
-                    dct1 = matrix[k][l] * ci * cj * 
-                    Math.cos((2 * k + 1) * i * PI / (2 * width)) *
-                    Math.cos((2 * l + 1) * j * PI / (2 * height));
-                    
+                    dct1 = matrix[k][l] * ci * cj *
+                        Math.cos((2 * k + 1) * i * PI / (2 * width)) *
+                        Math.cos((2 * l + 1) * j * PI / (2 * height));
+
                     sum += dct1
                 }
-            }            
+            }
             dct[i][j] = sum
         }
     }
