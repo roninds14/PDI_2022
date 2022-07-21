@@ -23,10 +23,15 @@ const SOMA = 10
 let buttonLoG = document.getElementById("btn-log")
 let buttonDCT = document.getElementById("btn-dct")
 let buttonDCTAlta = document.getElementById("btn-dct-alta")
+let buttonDCTRuido = document.getElementById("btn-dct-ruido")
 let buttonIDCT = document.getElementById("btn-idct")
 let buttonMax = document.getElementById("btn-max")
 let buttonMin = document.getElementById("btn-min")
 let buttonMed = document.getElementById("btn-med")
+
+let addRuidoDCT = false
+let matrixDCT = null
+let maxDCT
 
 const PI = 3.142857
 
@@ -94,6 +99,50 @@ canvasOriginal.addEventListener("click", (e) => {
     document.getElementById("hue_click").innerHTML = HLV[2]
 
     document.getElementById("canvas-click").style.display = "flex"
+})
+
+document.getElementById("canvas-processado").addEventListener("click", (e) => {
+    if(!addRuidoDCT) return
+
+    const { width, height } = inImg
+    
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+    
+    const POSITION = canvasProcessado.getBoundingClientRect();
+    const xWindow = e.clientX
+    const yWindow = e.clientY
+
+    const xCanvas = parseInt(xWindow - POSITION.x)
+    const yCanvas = parseInt(yWindow - POSITION.y)
+
+    matrixDCT[xCanvas][yCanvas] = maxDCT
+
+    let arange = {
+        max: Number.MIN_SAFE_INTEGER,
+        min: Number.MAX_SAFE_INTEGER
+    };
+
+    let matrix = iDctTransform(matrixDCT, arange)
+
+    matrix = equalizacao(matrix, arange)
+
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            ctx.fillStyle = rgbToHex(matrix[i][j], matrix[i][j], matrix[i][j])
+            ctx.fillRect(i, j, 1, 1)
+        }
+    }
+
+    let buttons = document.getElementsByTagName("button")
+
+    for(let i = 0; i < buttons.length; i++){
+        buttons[i].disabled = false
+    }
+
+    addRuidoDCT = false
+    matrixDCT = null
 })
 
 buttonImg.addEventListener("click", () => {
@@ -799,7 +848,6 @@ buttonLoG.addEventListener("click", () => {
     }
 })
 
-
 buttonDCT.addEventListener("click", () => {
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
@@ -832,7 +880,18 @@ buttonDCT.addEventListener("click", () => {
         matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
     }
 
-    matriz = dctTransform(matriz, arange)
+    matriz = dctTransform(matriz, arange)  
+    
+    if(addRuidoDCT){
+        matrixDCT = []
+        for (i = 0; i < width; i++) {
+            matrixDCT[i] = [];
+            for (j = 0; j < height; j++) {
+                matrixDCT[i][j] = matriz[i][j]
+            }
+        }
+        maxDCT = arange.max
+    }
 
     matriz = equalizacao(matriz, arange)
 
@@ -893,6 +952,20 @@ buttonIDCT.addEventListener("click", () => {
         }
     }
 
+})
+
+buttonDCTRuido.addEventListener("click", () =>{
+    addRuidoDCT = true
+
+    buttonDCT.click()
+
+    alert("Clique na imagem formada para adicionar o ruído!")
+
+    let buttons = document.getElementsByTagName("button")
+
+    for(let i = 0; i < buttons.length; i++){
+        buttons[i].disabled = true
+    }
 })
 
 buttonMax.addEventListener("click", () =>{
@@ -1093,8 +1166,6 @@ function laplacianodaGaussiana(matriz, arange) {
     }
     return matriz
 }
-
-
 
 function equalizacao(matriz, arange) {
     const { width, height } = inImg
