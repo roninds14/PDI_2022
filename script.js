@@ -968,6 +968,17 @@ buttonDCTRuido.addEventListener("click", () =>{
     }
 })
 
+buttonDCTAlta.addEventListener("click", () => {
+    let corte = parseInt(prompt("Digite um número inteiro:"))
+    
+    if(isNaN(corte)){
+        alert("Valor inserido inválido")
+        return
+    }
+
+    buttonIDCT.click()
+})
+
 buttonMax.addEventListener("click", () =>{
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
