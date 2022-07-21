@@ -23,6 +23,7 @@ const SOMA = 10
 let buttonLoG = document.getElementById("btn-log")
 let buttonDCT = document.getElementById("btn-dct")
 let buttonDCTAlta = document.getElementById("btn-dct-alta")
+let buttonDCTBaixa = document.getElementById("btn-dct-baixa")
 let buttonDCTRuido = document.getElementById("btn-dct-ruido")
 let buttonIDCT = document.getElementById("btn-idct")
 let buttonMax = document.getElementById("btn-max")
@@ -976,7 +977,108 @@ buttonDCTAlta.addEventListener("click", () => {
         return
     }
 
-    buttonIDCT.click()
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let matriz = []
+
+    let arange = {
+        max: Number.MIN_SAFE_INTEGER,
+        min: Number.MAX_SAFE_INTEGER
+    };
+
+    for (i = 0; i < width; i++) {
+        matriz[i] = [];
+        for (j = 0; j < height; j++) {
+            matriz[i][j] = 0
+        }
+    }
+
+    let r, g, b
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    matriz = dctTransform(matriz, arange, corte, "baixa")
+
+    arange.max = Number.MIN_SAFE_INTEGER,
+    arange.min = Number.MAX_SAFE_INTEGER
+
+    matriz = iDctTransform(matriz, arange)
+
+    matriz = equalizacao(matriz, arange)
+
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            ctx.fillStyle = rgbToHex(matriz[i][j], matriz[i][j], matriz[i][j])
+            ctx.fillRect(i, j, 1, 1)
+        }
+    }
+})
+
+buttonDCTBaixa.addEventListener("click", () => {
+    let corte = parseInt(prompt("Digite um número inteiro:"))
+    
+    if(isNaN(corte)){
+        alert("Valor inserido inválido")
+        return
+    }
+
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let matriz = []
+
+    let arange = {
+        max: Number.MIN_SAFE_INTEGER,
+        min: Number.MAX_SAFE_INTEGER
+    };
+
+    for (i = 0; i < width; i++) {
+        matriz[i] = [];
+        for (j = 0; j < height; j++) {
+            matriz[i][j] = 0
+        }
+    }
+
+    let r, g, b
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        matriz[i % width][parseInt(i / width)] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+    }
+
+    matriz = dctTransform(matriz, arange, corte, "alta")
+
+    arange.max = Number.MIN_SAFE_INTEGER,
+    arange.min = Number.MAX_SAFE_INTEGER
+
+    matriz = iDctTransform(matriz, arange)
+
+    matriz = equalizacao(matriz, arange)
+
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < height; j++) {
+            ctx.fillStyle = rgbToHex(matriz[i][j], matriz[i][j], matriz[i][j])
+            ctx.fillRect(i, j, 1, 1)
+        }
+    }
 })
 
 buttonMax.addEventListener("click", () =>{
@@ -1190,7 +1292,7 @@ function equalizacao(matriz, arange) {
     return matriz
 }
 
-function dctTransform(matrix, arange) {
+function dctTransform(matrix, arange, corte = NaN, tipo = "") {
     const { width, height } = inImg;
 
     let i, j, k, l;
@@ -1207,34 +1309,106 @@ function dctTransform(matrix, arange) {
 
     for (i = 0; i < width; i++) {
         for (j = 0; j < height; j++) {
-            if (i == 0) {
-                ci = 1 / Math.sqrt(width)
+            if(isNaN(corte)){
+                if (i == 0) {
+                    ci = 1 / Math.sqrt(width)
+                }
+                else {
+                    ci = Math.sqrt(2) / Math.sqrt(width)
+                }
+    
+                if (j == 0) {
+                    cj = 1 / Math.sqrt(height)
+                }
+                else {
+                    cj = Math.sqrt(2) / Math.sqrt(height)
+                }
+    
+                sum = 0;
+                for (k = 0; k < width; k++) {
+                    for (l = 0; l < height; l++) {
+                        dct1 = matrix[k][l] *
+                            Math.cos((2 * k + 1) * i * PI / (2 * width)) *
+                            Math.cos((2 * l + 1) * j * PI / (2 * height));
+    
+                        sum += dct1
+                    }
+                }
+                dct[i][j] = ci * cj * sum
+    
+                arange.max = arange.max > dct[i][j] ? arange.max : dct[i][j]
+                arange.min = arange.min < dct[i][j] ? arange.min : dct[i][j]
             }
-            else {
-                ci = Math.sqrt(2) / Math.sqrt(width)
-            }
-
-            if (j == 0) {
-                cj = 1 / Math.sqrt(height)
-            }
-            else {
-                cj = Math.sqrt(2) / Math.sqrt(height)
-            }
-
-            sum = 0;
-            for (k = 0; k < width; k++) {
-                for (l = 0; l < height; l++) {
-                    dct1 = matrix[k][l] *
-                        Math.cos((2 * k + 1) * i * PI / (2 * width)) *
-                        Math.cos((2 * l + 1) * j * PI / (2 * height));
-
-                    sum += dct1
+            else if(tipo === "alta"){
+                if(corte < Math.sqrt( Math.pow(i,2) + Math.pow(j,2) ) ){
+                    dct[i][j] = 0
+                }
+                else{
+                    if (i == 0) {
+                        ci = 1 / Math.sqrt(width)
+                    }
+                    else {
+                        ci = Math.sqrt(2) / Math.sqrt(width)
+                    }
+        
+                    if (j == 0) {
+                        cj = 1 / Math.sqrt(height)
+                    }
+                    else {
+                        cj = Math.sqrt(2) / Math.sqrt(height)
+                    }
+        
+                    sum = 0;
+                    for (k = 0; k < width; k++) {
+                        for (l = 0; l < height; l++) {
+                            dct1 = matrix[k][l] *
+                                Math.cos((2 * k + 1) * i * PI / (2 * width)) *
+                                Math.cos((2 * l + 1) * j * PI / (2 * height));
+        
+                            sum += dct1
+                        }
+                    }
+                    dct[i][j] = ci * cj * sum
+        
+                    arange.max = arange.max > dct[i][j] ? arange.max : dct[i][j]
+                    arange.min = arange.min < dct[i][j] ? arange.min : dct[i][j]
                 }
             }
-            dct[i][j] = ci * cj * sum
-
-            arange.max = arange.max > dct[i][j] ? arange.max : dct[i][j]
-            arange.min = arange.min < dct[i][j] ? arange.min : dct[i][j]
+            else if(tipo==="baixa"){
+                if(corte > Math.sqrt( Math.pow(i,2) + Math.pow(j,2) ) ){
+                    dct[i][j] = 0
+                }
+                else{
+                    if (i == 0) {
+                        ci = 1 / Math.sqrt(width)
+                    }
+                    else {
+                        ci = Math.sqrt(2) / Math.sqrt(width)
+                    }
+        
+                    if (j == 0) {
+                        cj = 1 / Math.sqrt(height)
+                    }
+                    else {
+                        cj = Math.sqrt(2) / Math.sqrt(height)
+                    }
+        
+                    sum = 0;
+                    for (k = 0; k < width; k++) {
+                        for (l = 0; l < height; l++) {
+                            dct1 = matrix[k][l] *
+                                Math.cos((2 * k + 1) * i * PI / (2 * width)) *
+                                Math.cos((2 * l + 1) * j * PI / (2 * height));
+        
+                            sum += dct1
+                        }
+                    }
+                    dct[i][j] = ci * cj * sum
+        
+                    arange.max = arange.max > dct[i][j] ? arange.max : dct[i][j]
+                    arange.min = arange.min < dct[i][j] ? arange.min : dct[i][j]
+                }
+            }
         }
     }
 
