@@ -18,6 +18,10 @@ button{
     font-size: large;
 }
 
+button:disabled{
+    background-color: #5C5c5c;
+}
+
 ul{
     list-style: none;
     padding: 10px;
