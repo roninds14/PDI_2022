@@ -20,6 +20,7 @@ let canvasProcessado = document.getElementById("img_01")
 let inImg
 const SOMA = 10
 
+let buttonEqLena = document.getElementById("btn-eqlena")
 let buttonPseudo = document.getElementById("btn-pseudo")
 let buttonLoG = document.getElementById("btn-log")
 let buttonDCT = document.getElementById("btn-dct")
@@ -815,10 +816,25 @@ function converteHLV(vetor) {
 /*****************************
  * CONTEUDO SEGUNDO BIMESTRE *
  *****************************/
+buttonEqLena.addEventListener("click", () => {
+    const { width, height } = inImg
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    let clampedArray = eqlena();
+
+    let newImageData = ctx.createImageData(width, height);
+
+    newImageData.data.set(new Uint8ClampedArray(clampedArray));
+
+    ctx.putImageData(newImageData, 0, 0);
+
+})
 
 buttonPseudo.addEventListener("click", () => {
     const { width, height } = inImg
-    const src = new Uint8ClampedArray(inImg.data.buffer)
 
     const ctx = canvasProcessado.getContext('2d')
     canvasProcessado.width = width
@@ -1281,6 +1297,57 @@ buttonMed.addEventListener("click", () => {
     }
 })
 
+function eqlena() {
+    const { width, height } = inImg;
+
+    let hslImageData = []
+    let histograma = []
+    let eqHistograma = []
+
+    for (let i = 0; i < 100; i++) histograma[i] = 0;
+
+    for (let x = 0; x < inImg.data.length; x += 4) {
+        let hsl = rgbToHsl(
+            inImg.data[x],
+            inImg.data[x + 1],
+            inImg.data[x + 2]
+        );
+
+        hslImageData.push(hsl[0], hsl[1], hsl[2]);
+
+        histograma[hsl[2]] += 1;
+    }
+
+    let acumulador = 0;
+
+    for (let x = 0; x < histograma.length; x++) {
+        acumulador += histograma[x];
+
+        let eq = Math.max(
+            0,
+            Math.round(
+                (100 * acumulador) / (width * height)
+            ) - 1
+        );
+
+        eqHistograma.push(eq);
+    }
+
+    let clampedArray = [];
+
+    for (let x = 0; x < hslImageData.length; x += 3) {
+        let rgb = hslToRgb(
+            hslImageData[x],
+            hslImageData[x + 1],
+            eqHistograma[hslImageData[x + 2]]
+        );
+
+        clampedArray.push(rgb[0], rgb[1], rgb[2], 255);
+    }
+
+    return clampedArray;
+}
+
 function pseudocores() {
     const { width, height } = inImg;
 
@@ -1334,6 +1401,45 @@ function pseudocores() {
     }
 
     return clampedArray;
+}
+
+// Retorna vetor com as conversões de RGB para HSL
+function rgbToHsl(r, g, b) {
+
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const l = Math.max(r, g, b);
+    const s = l - Math.min(r, g, b);
+    const h = s
+        ? l === r
+            ? (g - b) / s
+            : l === g
+                ? 2 + (b - r) / s
+                : 4 + (r - g) / s
+        : 0;
+    return [
+        Math.round(60 * h < 0 ? 60 * h + 360 : 60 * h),
+        Math.round(
+            100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0)
+        ),
+        Math.round((100 * (2 * l - s)) / 2),
+    ];
+}
+
+// Retorna vetor com as conversões de HSL para RGB
+function hslToRgb(h, s, l){
+    s /= 100;
+    l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) =>
+      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [
+      Math.round(255 * f(0)),
+      Math.round(255 * f(8)),
+      Math.round(255 * f(4)),
+    ];
 }
 
 // Laplaciano da Gaussiana utilizado para detecção de bordas e suavização da imagem resultante
