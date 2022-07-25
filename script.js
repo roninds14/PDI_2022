@@ -20,6 +20,7 @@ let canvasProcessado = document.getElementById("img_01")
 let inImg
 const SOMA = 10
 
+let buttonOtsu = document.getElementById("btn-otsu")
 let buttonEqLena = document.getElementById("btn-eqlena")
 let buttonPseudo = document.getElementById("btn-pseudo")
 let buttonLoG = document.getElementById("btn-log")
@@ -41,6 +42,9 @@ let cores = [
     { r: 255, g: 255, b: 0 }, //amarelo 
     { r: 255, g: 0, b: 0 },   //vermelho
 ];
+
+let pixels = [];
+let histArr = [];
 let addRuidoDCT = false
 let matrixDCT = null
 let maxDCT
@@ -816,6 +820,37 @@ function converteHLV(vetor) {
 /*****************************
  * CONTEUDO SEGUNDO BIMESTRE *
  *****************************/
+buttonOtsu.addEventListener("click", () => {
+    //cd addCanvas()
+    const { width, height } = inImg
+
+    const ctx = canvasProcessado.getContext('2d')
+    canvasProcessado.width = width
+    canvasProcessado.height = height
+
+    escalaCinza();
+    histograma();
+
+    let otsuLimiar = melhorLimiarOtsu();
+    for (let i = 0; i < pixels.length; i++) {
+        if (pixels[i].intensity < otsuLimiar) {
+            inImg.data[4 * i] = 0;
+            inImg.data[4 * i + 1] = 0;
+            inImg.data[4 * i + 2] = 0;
+        }
+        else {
+            inImg.data[4 * i] = 255;
+            inImg.data[4 * i + 1] = 255;
+            inImg.data[4 * i + 2] = 255;
+        }
+        inImg.data[4 * i + 3] = 255;
+    }
+
+    ctx.putImageData(inImg, 0, 0);
+
+
+})
+
 buttonEqLena.addEventListener("click", () => {
     const { width, height } = inImg
 
@@ -1297,6 +1332,82 @@ buttonMed.addEventListener("click", () => {
     }
 })
 
+function melhorLimiarOtsu() {
+    let melhorLimiar = -1;
+    let bestInBetweenVariance = 0;
+    let curInBetweenVariance;
+    let arr1 = [];
+    let arr2 = [];
+    let mean1;
+    let mean2;
+    let altura1;
+    let autura2;
+    histArr.forEach((hist, ind) => {
+        if (ind != histArr.length - 1) {
+            arr1 = histArr.slice(0, ind + 1);
+            arr2 = histArr.slice(ind + 1, histArr.length);
+            altura1 = getWeight(arr1);
+            autura2 = getWeight(arr2);
+            mean1 = getMean(arr1, 0);
+            mean2 = getMean(arr2, arr1.length);
+            curInBetweenVariance = altura1 * autura2 * (mean1 - mean2) * (mean1 - mean2);
+            if (curInBetweenVariance > bestInBetweenVariance) {
+                bestInBetweenVariance = curInBetweenVariance;
+                melhorLimiar = ind;
+            }
+        }
+    });
+    return melhorLimiar;
+}
+
+class PixelOfImage{
+    constructor(position,intensity){
+        this.position = position;
+        this.intensity = intensity;
+    }
+}
+
+function escalaCinza(){
+    let acumulador = 0;
+    let valorEscalaCinza = 0;
+
+    for(let i=0;i<inImg.data.length;i+=4){
+        valorEscalaCinza = Math.trunc((inImg.data[i] + inImg.data[i+1] + inImg.data[i+2])/3);
+        inImg.data[i] = valorEscalaCinza;
+        inImg.data[i+1] = valorEscalaCinza;
+        inImg.data[i+2] = valorEscalaCinza;
+        inImg.data[i+3] = 255;
+        pixels.push(new PixelOfImage(acumulador++,valorEscalaCinza));
+    }
+}
+
+function getWeight(arr) {
+    var sum = 0;
+    for (var i = 0; i < arr.length; i++) {
+        sum += arr[i]
+    }
+    return sum / pixels.length;
+}
+
+function getMean(arr, backGroundStart) {
+    var mean = 0;
+    var sum = 0;
+    arr.forEach((ele, idx) => {
+        mean = mean + (ele * (backGroundStart + idx));
+        sum += ele;
+    });
+    return mean / sum;
+}
+
+function histograma() {
+    for (let i = 0; i < 256; i++) {
+        histArr[i] = 0;
+    }
+    pixels.forEach((val) => {
+        histArr[val.intensity] = histArr[val.intensity] + 1;
+    });
+}
+
 function eqlena() {
     const { width, height } = inImg;
 
@@ -1428,17 +1539,17 @@ function rgbToHsl(r, g, b) {
 }
 
 // Retorna vetor com as conversões de HSL para RGB
-function hslToRgb(h, s, l){
+function hslToRgb(h, s, l) {
     s /= 100;
     l /= 100;
     const k = (n) => (n + h / 30) % 12;
     const a = s * Math.min(l, 1 - l);
     const f = (n) =>
-      l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
     return [
-      Math.round(255 * f(0)),
-      Math.round(255 * f(8)),
-      Math.round(255 * f(4)),
+        Math.round(255 * f(0)),
+        Math.round(255 * f(8)),
+        Math.round(255 * f(4)),
     ];
 }
 
