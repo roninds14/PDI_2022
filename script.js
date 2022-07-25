@@ -852,6 +852,8 @@ buttonOtsu.addEventListener("click", () => {
 })
 
 buttonEqLena.addEventListener("click", () => {
+    addCanvas()
+
     const { width, height } = inImg
 
     const ctx = canvasProcessado.getContext('2d')
@@ -869,6 +871,8 @@ buttonEqLena.addEventListener("click", () => {
 })
 
 buttonPseudo.addEventListener("click", () => {
+    addCanvas()
+
     const { width, height } = inImg
 
     const ctx = canvasProcessado.getContext('2d')
@@ -886,12 +890,18 @@ buttonPseudo.addEventListener("click", () => {
 })
 
 buttonLoG.addEventListener("click", () => {
+    addCanvas()
+
+    laplaciano(8,8)
+
     const { width, height } = inImg
     const src = new Uint8ClampedArray(inImg.data.buffer)
 
-    const ctx = canvasProcessado.getContext('2d')
-    canvasProcessado.width = width
-    canvasProcessado.height = height
+    const canvas = document.createElement("canvas")
+
+    const ctx = canvas.getContext('2d')
+    canvas.width = width
+    canvas.height = height
 
     let matriz = []
 
@@ -928,9 +938,13 @@ buttonLoG.addEventListener("click", () => {
             ctx.fillRect(i, j, 1, 1)
         }
     }
+
+    document.getElementById("canvas-processado").appendChild(canvas)
 })
 
 buttonDCT.addEventListener("click", () => {
+    addCanvas()
+
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
 
@@ -987,6 +1001,8 @@ buttonDCT.addEventListener("click", () => {
 })
 
 buttonIDCT.addEventListener("click", () => {
+    addCanvas()
+
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
 
@@ -1037,6 +1053,8 @@ buttonIDCT.addEventListener("click", () => {
 })
 
 buttonDCTRuido.addEventListener("click", () => {
+    addCanvas()
+
     addRuidoDCT = true
 
     buttonDCT.click()
@@ -1051,6 +1069,8 @@ buttonDCTRuido.addEventListener("click", () => {
 })
 
 buttonDCTAlta.addEventListener("click", () => {
+    addCanvas()
+
     let corte = parseInt(prompt("Digite um número inteiro:"))
 
     if (isNaN(corte)) {
@@ -1107,6 +1127,8 @@ buttonDCTAlta.addEventListener("click", () => {
 })
 
 buttonDCTBaixa.addEventListener("click", () => {
+    addCanvas()
+
     let corte = parseInt(prompt("Digite um número inteiro:"))
 
     if (isNaN(corte)) {
@@ -1163,6 +1185,8 @@ buttonDCTBaixa.addEventListener("click", () => {
 })
 
 buttonMax.addEventListener("click", () => {
+    addCanvas()
+
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
 
@@ -1215,6 +1239,8 @@ buttonMax.addEventListener("click", () => {
 })
 
 buttonMin.addEventListener("click", () => {
+    addCanvas()
+
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
 
@@ -1267,6 +1293,8 @@ buttonMin.addEventListener("click", () => {
 })
 
 buttonMed.addEventListener("click", () => {
+    addCanvas()
+    
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
 
