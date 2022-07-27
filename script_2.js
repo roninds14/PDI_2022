@@ -1,4 +1,92 @@
-document.getElementById("btn-suen").addEventListener("click", () => {
+let buttonZhangSuen = document.getElementById("btn-suen")
+let buttonEroDil = document.getElementById("btn-er-di")
+
+buttonEroDil.addEventListener("click",  () => {
+    addCanvas()
+
+    buttonZhangSuen.click()
+
+    erosao()
+
+    dilatacao()
+})
+
+function erosao(){
+    const { width, height } = inImg
+    const src = new Uint32Array(inImg.data.buffer)
+
+    const canvas = document.createElement("canvas")
+    const ctx = canvas.getContext('2d')
+    canvas.width = width
+    canvas.height = height
+
+    let masc = [
+        [0,1,0],
+        [1,1,1],
+        [0,1,0]
+    ]
+
+    let cor
+    let remove
+    let pp = []
+    
+    for (let i = 0; i < src.length; i++) {
+        pp[i] = 0;        
+    }   
+
+    for (let i = 0; i < src.length; i++) {
+        r = src[i] & 0xFF
+        g = (src[i] >> 8) & 0xFF
+        b = (src[i] >> 16) & 0xFF
+
+        cor = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+
+        if(cor > 0){
+            remove = false
+            for(let j = -1; j <= 1; j++){
+                for(let k = -1; k <= 1; k++){
+                    let desloc = 0;
+
+                    desloc += j == -1? -width: 0
+                    desloc += j == 1? width: 0
+
+                    desloc += k == -1? -1: 0
+                    desloc += k == 1? 1: 0
+
+                    r = src[i+desloc] & 0xFF
+                    g = (src[i+desloc] >> 8) & 0xFF
+                    b = (src[i+desloc] >> 16) & 0xFF
+                    
+                    let cor_2 = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
+                    
+                    if(masc[j+1][k+1] == 1 && cor_2 == 0){
+                        remove = true
+                    }
+
+                    if(remove){
+                        pp[i] = 0
+                    }
+                    else{
+                        pp[i] = 255
+                    }
+                }
+            }
+        }
+    }
+
+    for(i=0; i<src.length;i++){
+        ctx.fillStyle = rgbToHex(pp[i], pp[i], pp[i])
+        ctx.fillRect(i % width, parseInt(i / width), 1, 1)
+    }
+
+    document.getElementById("canvas-processado").appendChild(canvas)
+}
+
+function dilatacao(){
+    alert("dilatacao")
+}
+
+buttonZhangSuen.addEventListener("click", () => {
     const { width, height } = inImg
     const src = new Uint32Array(inImg.data.buffer)
 
