@@ -821,7 +821,8 @@ function converteHLV(vetor) {
  * CONTEUDO SEGUNDO BIMESTRE *
  *****************************/
 buttonOtsu.addEventListener("click", () => {
-    //cd addCanvas()
+    addCanvas()
+    
     const { width, height } = inImg
 
     const ctx = canvasProcessado.getContext('2d')
