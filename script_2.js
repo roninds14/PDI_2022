@@ -148,7 +148,7 @@ buttonZhangSuen.addEventListener("click", () => {
         pp[i] = parseInt(0.299 * r + 0.587 * g + 0.114 * b)
     }
 
-    for (x = 0; x < 5; x++) {
+    for (x = 0; x < 50; x++) {
         for (n = 0; n < 2; n++) {
             id = [];
             for (i = 0; i < len;) {
@@ -176,14 +176,12 @@ buttonZhangSuen.addEventListener("click", () => {
                 if (b >= 2 && b <= 6 && zn == 1 && p2 * p4 * p8 == 0 && p2 * p6 * p8 == 0 && n == 1) { id.push(i); }
                 i++;
             }
-            for (i = 0; i < id.length; i++) { pp[id[i]] = -1; }
+            for (i = 0; i < id.length; i++) { pp[id[i]] = 0; }
         }
     }
 
-    for (i = 0; i < len; i++) {
-        if (pp[i] == -1) ctx.fillStyle = rgbToHex(255, 255, 255)
-        else ctx.fillStyle = rgbToHex(0, 0, 0)
-
+    for (let i = 0; i < src.length; i++) {
+        ctx.fillStyle = rgbToHex(pp[i], pp[i], pp[i])
         ctx.fillRect(i % width, parseInt(i / width), 1, 1)
     }
 })
